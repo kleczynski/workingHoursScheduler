@@ -40,81 +40,81 @@ const WorkSchedule = () => {
         return ((endHour - startHour) * 60 + (endMin - startMin)) / 60;
     };
 
-    const calculatePayment = (person) => {
-        let totalHours = 0;
-        let soloHours = 0;
-        let saturdayHours = 0;
+const calculatePayment = (person) => {
+    let totalHours = 0;
+    let soloHours = 0;
+    let saturdayHours = 0;
+    
+    // First, let's examine each day separately
+    Object.entries(schedule[person]).forEach(([day, times]) => {
+        if (!times.start || !times.end) return;
         
-        // First, let's examine each day separately
-        Object.entries(schedule[person]).forEach(([day, times]) => {
-            if (!times.start || !times.end) return;
-            
-            const currentPersonShift = {
-                start: times.start,
-                end: times.end
-            };
-            
-            // Get all other people's shifts for this day
-            const otherShifts = Object.entries(schedule)
-                .filter(([otherPerson]) => otherPerson !== person)
-                .map(([_, days]) => days[day])
-                .filter(shift => shift.start && shift.end);
-                
-            // Calculate total hours for this day
-            const dailyHours = calculateHours(times.start, times.end);
-            totalHours += dailyHours;
-            
-            // For solo hours calculation
-            const [startHour, startMin] = times.start.split(':').map(Number);
-            const [endHour, endMin] = times.end.split(':').map(Number);
-            
-            // Convert to minutes for easier comparison
-            const shiftStartMinutes = startHour * 60 + startMin;
-            const shiftEndMinutes = endHour * 60 + endMin;
-            
-            // Initialize solo minutes counter for this day
-            let dailySoloMinutes = 0;
-            
-            // Check each minute of the shift
-            for (let currentMinute = shiftStartMinutes; currentMinute < shiftEndMinutes; currentMinute++) {
-                const isAlone = otherShifts.every(otherShift => {
-                    const [otherStartHour, otherStartMin] = otherShift.start.split(':').map(Number);
-                    const [otherEndHour, otherEndMin] = otherShift.end.split(':').map(Number);
-                    const otherStartMinutes = otherStartHour * 60 + otherStartMin;
-                    const otherEndMinutes = otherEndHour * 60 + otherEndMin;
-                    
-                    // If current minute is outside other person's shift, they're not present
-                    return currentMinute < otherStartMinutes || currentMinute >= otherEndMinutes;
-                });
-                
-                if (isAlone) {
-                    dailySoloMinutes++;
-                }
-            }
-            
-            // Convert solo minutes to hours and add to total
-            soloHours += dailySoloMinutes / 60;
-            
-            // Saturday hours calculation
-            if (day === 'Sob') {
-                saturdayHours = dailyHours;
-            }
-        });
-    
-        // Calculate payment components
-        const baseRate = person === 'Grzesiek' ? 28 : 25;
-        const payment = {
-            X: totalHours,
-            Y: soloHours,
-            Z: saturdayHours,
-            A: totalHours * baseRate,
-            B: soloHours * 7, // 7zł per hour for solo work
-            C: saturdayHours * 2,
-            total: (totalHours * baseRate) + (soloHours * 7) + (saturdayHours * 2)
+        const currentPersonShift = {
+            start: times.start,
+            end: times.end
         };
-    
-        return payment;
+        
+        // Get all other people's shifts for this day
+        const otherShifts = Object.entries(schedule)
+            .filter(([otherPerson]) => otherPerson !== person)
+            .map(([_, days]) => days[day])
+            .filter(shift => shift.start && shift.end);
+            
+        // Calculate total hours for this day
+        const dailyHours = calculateHours(times.start, times.end);
+        totalHours += dailyHours;
+        
+        // For solo hours calculation
+        const [startHour, startMin] = times.start.split(':').map(Number);
+        const [endHour, endMin] = times.end.split(':').map(Number);
+        
+        // Convert to minutes for easier comparison
+        const shiftStartMinutes = startHour * 60 + startMin;
+        const shiftEndMinutes = endHour * 60 + endMin;
+        
+        // Initialize solo minutes counter for this day
+        let dailySoloMinutes = 0;
+        
+        // Check each minute of the shift
+        for (let currentMinute = shiftStartMinutes; currentMinute < shiftEndMinutes; currentMinute++) {
+            const isAlone = otherShifts.every(otherShift => {
+                const [otherStartHour, otherStartMin] = otherShift.start.split(':').map(Number);
+                const [otherEndHour, otherEndMin] = otherShift.end.split(':').map(Number);
+                const otherStartMinutes = otherStartHour * 60 + otherStartMin;
+                const otherEndMinutes = otherEndHour * 60 + otherEndMin;
+                
+                // If current minute is outside other person's shift, they're not present
+                return currentMinute < otherStartMinutes || currentMinute >= otherEndMinutes;
+            });
+            
+            if (isAlone) {
+                dailySoloMinutes++;
+            }
+        }
+        
+        // Convert solo minutes to hours and add to total
+        soloHours += dailySoloMinutes / 60;
+        
+        // Saturday hours calculation
+        if (day === 'Sob') {
+            saturdayHours = dailyHours;
+        }
+    });
+
+    // Calculate payment components
+    const baseRate = person === 'Grzesiek' ? 28 : 25;
+    const payment = {
+        X: totalHours,
+        Y: soloHours,
+        Z: saturdayHours,
+        A: totalHours * baseRate,
+        B: soloHours * 7, // 7zł per hour for solo work
+        C: saturdayHours * 2,
+        total: (totalHours * baseRate) + (soloHours * 7) + (saturdayHours * 2)
     };
+
+    return payment;
+};
 
     useEffect(() => {
         const newCalculations = {

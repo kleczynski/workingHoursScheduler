@@ -1,8 +1,8 @@
 import React from 'react';
-import WorkSchedule from './components/WorkSchedule';
+import ScheduleContainer from './components/ScheduleContainer'
 
 export default function Home() {
   return (
-    <WorkSchedule />
+    <ScheduleContainer />
   );
 }
