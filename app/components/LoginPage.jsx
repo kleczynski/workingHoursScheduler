@@ -9,7 +9,7 @@ const LoginPage = ({ onLogin }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (password === '1234') {
+        if (password === 'papaj300') {
             localStorage.setItem('isAuthenticated', 'true');
             onLogin();
             setError('');
