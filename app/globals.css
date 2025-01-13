@@ -70,3 +70,51 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+    @page {
+        size: A3 landscape;
+        margin: 1cm;
+    }
+
+    body {
+        margin: 0;
+        padding: 30px;
+        background: white;
+        min-width: 100%;
+        width: auto !important;
+    }
+
+    #schedule-container {
+        background: white;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+    }
+
+    table {
+        page-break-inside: auto !important;
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+
+    tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+    }
+
+    th, td {
+        padding: 8px !important;
+        border: 1px solid #000 !important;
+        font-size: 11pt !important;
+        page-break-inside: avoid !important;
+    }
+
+    input, select {
+        border: none !important;
+        font-size: 11pt !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}

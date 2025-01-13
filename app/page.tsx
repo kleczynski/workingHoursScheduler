@@ -1,8 +1,13 @@
+'use client';
+
 import React from 'react';
-import ScheduleContainer from './components/ScheduleContainer'
+import ScheduleContainer from './components/ScheduleContainer';
+import AuthWrapper from './components/AuthWrapper';
 
 export default function Home() {
   return (
-    <ScheduleContainer />
+    <AuthWrapper>
+      <ScheduleContainer />
+    </AuthWrapper>
   );
 }

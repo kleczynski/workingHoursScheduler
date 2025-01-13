@@ -8,7 +8,6 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
         let soloHours = 0;
         let saturdayHours = 0;
         
-        // Calculate hours
         Object.entries(weekData.schedule[person]).forEach(([day, shift]) => {
             if (shift.type === 'wolne') return;
             if (!shift.start || !shift.end) return;
@@ -24,13 +23,11 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
             
             totalHours += dailyHours;
             
-            // Solo hours calculation
             const currentShiftMinutes = {
                 start: startHour * 60 + startMin,
                 end: endHour * 60 + endMin
             };
             
-            // Check each minute of the shift for solo work
             for (let minute = currentShiftMinutes.start; minute < currentShiftMinutes.end; minute++) {
                 const isAlone = Object.entries(weekData.schedule)
                     .filter(([otherPerson]) => otherPerson !== person && otherPerson !== 'Leader')
@@ -51,7 +48,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                     });
                 
                 if (isAlone) {
-                    soloHours += 1/60; // Add one minute converted to hours
+                    soloHours += 1/60;
                 }
             }
         });
@@ -59,7 +56,6 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
         const rates = weekData.rates[person];
         const bonus = weekData.bonuses[person];
         
-        // Calculate payments
         const basePayment = totalHours * rates.A;
         const soloPayment = soloHours * rates.B;
         const saturdayPayment = saturdayHours * rates.C;
@@ -84,6 +80,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
             bonus: bonus
         };
     };
+    
 
     const handleRateChange = (person, rateType, value) => {
         const numericValue = parseFloat(value) || 0;
@@ -117,7 +114,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                     <thead>
                         <tr>
                             <th className="border p-2">Osoba</th>
-                            <th className="border p-2">Stawki (A/B/C)</th>
+                            <th className="border p-2">Stawki ({weekData.labels.A}/{weekData.labels.B}/{weekData.labels.C})</th>
                             <th className="border p-2">Czas pracy</th>
                             <th className="border p-2">Dodatek funkcyjny</th>
                             <th className="border p-2">Wypłata</th>
@@ -136,7 +133,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                         <td className="border p-2">
                                             <div className="flex flex-col gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <span>A:</span>
+                                                    <span>{weekData.labels.A}:</span>
                                                     <input
                                                         type="number"
                                                         className="border p-1 w-20"
@@ -145,7 +142,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span>B:</span>
+                                                    <span>{weekData.labels.B}:</span>
                                                     <input
                                                         type="number"
                                                         className="border p-1 w-20"
@@ -154,7 +151,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span>C:</span>
+                                                    <span>{weekData.labels.C}:</span>
                                                     <input
                                                         type="number"
                                                         className="border p-1 w-20"
@@ -200,11 +197,11 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                             </div>
                                         </td>
                                         <td className="border p-2">
-                                            <div>A: {calculation.payments.base.toFixed(2)}zł</div>
-                                            <div>B: {calculation.payments.solo.toFixed(2)}zł</div>
-                                            <div>C: {calculation.payments.saturday.toFixed(2)}zł</div>
+                                            <div>{weekData.labels.A}: {calculation.payments.base.toFixed(2)}zł</div>
+                                            <div>{weekData.labels.B}: {calculation.payments.solo.toFixed(2)}zł</div>
+                                            <div>{weekData.labels.C}: {calculation.payments.saturday.toFixed(2)}zł</div>
                                             {calculation.bonus.enabled && (
-                                                <div>D: {calculation.payments.bonus.toFixed(2)}zł</div>
+                                                <div>Dodatek: {calculation.payments.bonus.toFixed(2)}zł</div>
                                             )}
                                             <div className="font-bold text-red-500 mt-2">
                                                 Suma: {calculation.payments.total.toFixed(2)}zł
