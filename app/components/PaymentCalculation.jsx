@@ -1,14 +1,36 @@
 import React from 'react';
 
+const formatTimeToHoursAndMinutes = (decimalHours) => {
+    const hours = Math.floor(decimalHours);
+    const minutes = Math.round((decimalHours - hours) * 60);
+    
+    if (hours === 0) {
+        return `${minutes}min`;
+    } else if (minutes === 0) {
+        return `${hours}h`;
+    }
+    return `${hours}h ${minutes}min`;
+};
+
 const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
     const calculatePayment = (person) => {
-        if (person === 'Leader') return null;
+        if (weekData.schedule[person].isLeader) return null;
+        if (!weekData.rates[person]) return null;
 
         let totalHours = 0;
         let soloHours = 0;
         let saturdayHours = 0;
         
-        Object.entries(weekData.schedule[person]).forEach(([day, shift]) => {
+        // Define valid day keys
+        const validDays = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob'];
+        
+        // Process only valid day entries
+        validDays.forEach(day => {
+            const shift = weekData.schedule[person][day];
+            // Skip if shift is undefined or doesn't have required properties
+            if (!shift || !shift.type) return;
+            
+            // Skip if it's a free day or missing time data
             if (shift.type === 'wolne') return;
             if (!shift.start || !shift.end) return;
             
@@ -30,10 +52,10 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
             
             for (let minute = currentShiftMinutes.start; minute < currentShiftMinutes.end; minute++) {
                 const isAlone = Object.entries(weekData.schedule)
-                    .filter(([otherPerson]) => otherPerson !== person && otherPerson !== 'Leader')
-                    .every(([_, days]) => {
-                        const otherShift = days[day];
-                        if (otherShift.type === 'wolne') return true;
+                    .filter(([otherPerson]) => otherPerson !== person && !weekData.schedule[otherPerson].isLeader)
+                    .every(([_, schedule]) => {
+                        const otherShift = schedule[day];
+                        if (!otherShift || otherShift.type === 'wolne') return true;
                         if (!otherShift.start || !otherShift.end) return true;
                         
                         const [otherStartHour, otherStartMin] = otherShift.start.split(':').map(Number);
@@ -80,7 +102,31 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
             bonus: bonus
         };
     };
+
+        // Calculate totals for all employees
+        const calculateTotals = () => {
+            const employees = Object.entries(weekData.schedule)
+                .filter(([_, data]) => !data.isLeader)
+                .map(([person]) => calculatePayment(person))
+                .filter(calc => calc !== null);
     
+            return {
+                hours: {
+                    total: employees.reduce((sum, emp) => sum + emp.hours.total, 0),
+                    solo: employees.reduce((sum, emp) => sum + emp.hours.solo, 0),
+                    saturday: employees.reduce((sum, emp) => sum + emp.hours.saturday, 0)
+                },
+                payments: {
+                    base: employees.reduce((sum, emp) => sum + emp.payments.base, 0),
+                    solo: employees.reduce((sum, emp) => sum + emp.payments.solo, 0),
+                    saturday: employees.reduce((sum, emp) => sum + emp.payments.saturday, 0),
+                    bonus: employees.reduce((sum, emp) => sum + emp.payments.bonus, 0),
+                    total: employees.reduce((sum, emp) => sum + emp.payments.total, 0)
+                }
+            };
+        };
+    
+        const totals = calculateTotals();
 
     const handleRateChange = (person, rateType, value) => {
         const numericValue = parseFloat(value) || 0;
@@ -116,13 +162,13 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                             <th className="border p-2">Osoba</th>
                             <th className="border p-2">Stawki ({weekData.labels.A}/{weekData.labels.B}/{weekData.labels.C})</th>
                             <th className="border p-2">Czas pracy</th>
-                            <th className="border p-2">Dodatek funkcyjny</th>
                             <th className="border p-2">Wypłata</th>
+                            <th className="border p-2">Dodatek funkcyjny</th>
                         </tr>
                     </thead>
                     <tbody>
                         {Object.entries(weekData.schedule)
-                            .filter(([person]) => person !== 'Leader')
+                            .filter(([_, data]) => !data.isLeader)
                             .map(([person]) => {
                                 const calculation = calculatePayment(person);
                                 if (!calculation) return null;
@@ -162,9 +208,20 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                             </div>
                                         </td>
                                         <td className="border p-2">
-                                            <div>Całkowity: {calculation.hours.total.toFixed(2)}h</div>
-                                            <div>Samodzielny: {calculation.hours.solo.toFixed(2)}h</div>
-                                            <div>Sobota: {calculation.hours.saturday.toFixed(2)}h</div>
+                                            <div>Całkowity: {formatTimeToHoursAndMinutes(calculation.hours.total)}</div>
+                                            <div>Samodzielny: {formatTimeToHoursAndMinutes(calculation.hours.solo)}</div>
+                                            <div>Sobota: {formatTimeToHoursAndMinutes(calculation.hours.saturday)}</div>
+                                        </td>
+                                        <td className="border p-2">
+                                            <div>{weekData.labels.A}: {calculation.payments.base.toFixed(2)}zł</div>
+                                            <div>{weekData.labels.B}: {calculation.payments.solo.toFixed(2)}zł</div>
+                                            <div>{weekData.labels.C}: {calculation.payments.saturday.toFixed(2)}zł</div>
+                                            {calculation.bonus.enabled && (
+                                                <div>Dodatek: {calculation.payments.bonus.toFixed(2)}zł</div>
+                                            )}
+                                            <div className="font-bold text-red-500 mt-2">
+                                                Suma: {calculation.payments.total.toFixed(2)}zł
+                                            </div>
                                         </td>
                                         <td className="border p-2">
                                             <div className="flex flex-col gap-2">
@@ -196,20 +253,32 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="border p-2">
-                                            <div>{weekData.labels.A}: {calculation.payments.base.toFixed(2)}zł</div>
-                                            <div>{weekData.labels.B}: {calculation.payments.solo.toFixed(2)}zł</div>
-                                            <div>{weekData.labels.C}: {calculation.payments.saturday.toFixed(2)}zł</div>
-                                            {calculation.bonus.enabled && (
-                                                <div>Dodatek: {calculation.payments.bonus.toFixed(2)}zł</div>
-                                            )}
-                                            <div className="font-bold text-red-500 mt-2">
-                                                Suma: {calculation.payments.total.toFixed(2)}zł
-                                            </div>
-                                        </td>
                                     </tr>
                                 );
-                        })}
+                            })}
+                        {/* Summary Row */}
+                        <tr className="bg-gray-50">
+                            <td colSpan={2} className="border p-2 font-bold text-right">
+                                Suma całkowita:
+                            </td>
+                            <td className="border p-2">
+                                <div>Całkowity: {formatTimeToHoursAndMinutes(totals.hours.total)}</div>
+                                <div>Samodzielny: {formatTimeToHoursAndMinutes(totals.hours.solo)}</div>
+                                <div>Sobota: {formatTimeToHoursAndMinutes(totals.hours.saturday)}</div>
+                            </td>
+                            <td className="border p-2">
+                                <div>{weekData.labels.A}: {totals.payments.base.toFixed(2)}zł</div>
+                                <div>{weekData.labels.B}: {totals.payments.solo.toFixed(2)}zł</div>
+                                <div>{weekData.labels.C}: {totals.payments.saturday.toFixed(2)}zł</div>
+                                {totals.payments.bonus > 0 && (
+                                    <div>Dodatki: {totals.payments.bonus.toFixed(2)}zł</div>
+                                )}
+                                <div className="font-bold text-red-500 mt-2">
+                                    Suma: {totals.payments.total.toFixed(2)}zł
+                                </div>
+                            </td>
+                            <td className="border p-2"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

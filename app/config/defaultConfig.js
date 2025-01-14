@@ -24,6 +24,7 @@ export const defaultWeekConfig = {
     },
     schedule: {
         Leader: {
+            isLeader: true,
             Pon: { type: 'time', start: '', end: '' },
             Wt: { type: 'time', start: '', end: '' },
             Śr: { type: 'time', start: '', end: '' },
@@ -56,4 +57,18 @@ export const defaultWeekConfig = {
             Sob: { type: 'time', start: '12:00', end: '21:45' },
         },
     }
+};
+
+export const createNewStaffMember = (name, isLeader = false) => {
+    const baseSchedule = {
+        isLeader,
+        Pon: { type: 'time', start: '', end: '' },
+        Wt: { type: 'time', start: '', end: '' },
+        Śr: { type: 'time', start: '', end: '' },
+        Czw: { type: 'time', start: '', end: '' },
+        Pt: { type: 'time', start: '', end: '' },
+        Sob: { type: 'time', start: '', end: '' },
+    };
+
+    return baseSchedule;
 };
