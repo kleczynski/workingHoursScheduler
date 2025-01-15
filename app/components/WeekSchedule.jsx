@@ -3,6 +3,7 @@ import PaymentCalculation from './PaymentCalculation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RotateCcw } from "lucide-react";
 import WeekExportButton from './WeekExportButton';
+import TimePicker from './TimePicker';
 
 const WeekSchedule = ({ weekData, weekIndex, onUpdate, onNameChange }) => {
     const [weekTitle, setWeekTitle] = useState(() => {
@@ -94,19 +95,15 @@ const WeekSchedule = ({ weekData, weekIndex, onUpdate, onNameChange }) => {
                     </select>
                     {shift.type === 'time' && (
                         <>
-                            <input
-                                type="text"
-                                className="border p-1"
+                            <TimePicker
                                 value={shift.start}
-                                onChange={(e) => handleTimeChange(person, day, 'start', e.target.value)}
-                                placeholder="Start"
-                            />
-                            <input
-                                type="text"
+                                onChange={(value) => handleTimeChange(person, day, 'start', value)}
                                 className="border p-1"
+                            />
+                            <TimePicker
                                 value={shift.end}
-                                onChange={(e) => handleTimeChange(person, day, 'end', e.target.value)}
-                                placeholder="Koniec"
+                                onChange={(value) => handleTimeChange(person, day, 'end', value)}
+                                className="border p-1"
                             />
                         </>
                     )}
@@ -197,10 +194,11 @@ const WeekSchedule = ({ weekData, weekIndex, onUpdate, onNameChange }) => {
                                                 <AlertDialogContent>
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>
-                                                            {isLeader ? 'Resetować grafik lidera?' : 'Resetować grafik?'}
+                                                            {isLeader ?
+                                                                'Resetować grafik lidera?' : 'Resetować grafik?'}
                                                         </AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            Czy na pewno chcesz zresetować grafik dla {person} w {weekTitle}? 
+                                                            Czy na pewno chcesz zresetować grafik dla {person} w {weekTitle}?
                                                             Ta akcja usunie wszystkie godziny pracy.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>

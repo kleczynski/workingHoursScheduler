@@ -29,9 +29,9 @@ const usePdfExport = (weekData, weekIndex) => {
             const originalStyle = weekContainer.style.cssText;
             weekContainer.style.cssText = `
                 background: white;
-                padding: 20px;
+                padding: 10px;
                 max-width: none;
-                width: auto;
+                width: 120%;
             `;
 
             // Generate high-quality canvas
