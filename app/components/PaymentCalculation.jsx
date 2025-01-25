@@ -1,8 +1,12 @@
 import React from 'react';
 
 const formatTimeToHoursAndMinutes = (decimalHours) => {
-    const hours = Math.floor(decimalHours);
-    const minutes = Math.round((decimalHours - hours) * 60);
+    // Convert total time to minutes
+    const totalMinutes = Math.round(decimalHours * 60);
+    
+    // Calculate hours and remaining minutes
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     
     if (hours === 0) {
         return `${minutes}min`;
@@ -152,9 +156,51 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
         onBonusChange(person, newBonus);
     };
 
+    const handleLabelChange = (labelType, value) => {
+        const newLabels = {
+            ...weekData.labels,
+            [labelType]: value
+        };
+        onRateChange('labels', 'update', newLabels);
+    };
+
     return (
         <div className="mt-8">
             <h2 className="text-xl font-bold mb-4">WYPŁATA</h2>
+            <div className="mb-4 flex gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center">
+                        <span className="mr-2">Oznaczenie stawek:</span>
+                        {['A', 'B', 'C'].map((key) => (
+                            <input
+                                key={key}
+                                type="text"
+                                className="w-16 text-sm border rounded px-2 py-1 mx-1"
+                                value={weekData.labels[key]}
+                                onChange={(e) => handleLabelChange(key, e.target.value)}
+                                placeholder={key}
+                            />
+                        ))}
+                    </div>
+                    <div className="flex items-center">
+                        <span className="mr-2">Oznaczenie czasu:</span>
+                        {[
+                            { key: 'total', default: 'Całkowity' },
+                            { key: 'solo', default: 'Samodzielny' },
+                            { key: 'saturday', default: 'Sobota' }
+                        ].map(({ key, default: defaultLabel }) => (
+                            <input
+                                key={key}
+                                type="text"
+                                className="w-24 text-sm border rounded px-2 py-1 mx-1"
+                                value={weekData.labels[key] || defaultLabel}
+                                onChange={(e) => handleLabelChange(key, e.target.value)}
+                                placeholder={defaultLabel}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
             <div className="overflow-x-auto">
                 <table className="min-w-full border">
                     <thead>
@@ -172,7 +218,7 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                             .map(([person]) => {
                                 const calculation = calculatePayment(person);
                                 if (!calculation) return null;
-
+    
                                 return (
                                     <tr key={person}>
                                         <td className="border p-2 font-bold">{person}</td>
@@ -208,9 +254,9 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                             </div>
                                         </td>
                                         <td className="border p-2">
-                                            <div>Całkowity: {formatTimeToHoursAndMinutes(calculation.hours.total)}</div>
-                                            <div>Samodzielny: {formatTimeToHoursAndMinutes(calculation.hours.solo)}</div>
-                                            <div>Sobota: {formatTimeToHoursAndMinutes(calculation.hours.saturday)}</div>
+                                            <div>{weekData.labels.total || 'Całkowity'}: {formatTimeToHoursAndMinutes(calculation.hours.total)}</div>
+                                            <div>{weekData.labels.solo || 'Samodzielny'}: {formatTimeToHoursAndMinutes(calculation.hours.solo)}</div>
+                                            <div>{weekData.labels.saturday || 'Sobota'}: {formatTimeToHoursAndMinutes(calculation.hours.saturday)}</div>
                                         </td>
                                         <td className="border p-2">
                                             <div>{weekData.labels.A}: {calculation.payments.base.toFixed(2)}zł</div>
@@ -262,9 +308,9 @@ const PaymentCalculation = ({ weekData, onRateChange, onBonusChange }) => {
                                 Suma całkowita:
                             </td>
                             <td className="border p-2">
-                                <div>Całkowity: {formatTimeToHoursAndMinutes(totals.hours.total)}</div>
-                                <div>Samodzielny: {formatTimeToHoursAndMinutes(totals.hours.solo)}</div>
-                                <div>Sobota: {formatTimeToHoursAndMinutes(totals.hours.saturday)}</div>
+                                <div>{weekData.labels.total || 'Całkowity'}: {formatTimeToHoursAndMinutes(totals.hours.total)}</div>
+                                <div>{weekData.labels.solo || 'Samodzielny'}: {formatTimeToHoursAndMinutes(totals.hours.solo)}</div>
+                                <div>{weekData.labels.saturday || 'Sobota'}: {formatTimeToHoursAndMinutes(totals.hours.saturday)}</div>
                             </td>
                             <td className="border p-2">
                                 <div>{weekData.labels.A}: {totals.payments.base.toFixed(2)}zł</div>

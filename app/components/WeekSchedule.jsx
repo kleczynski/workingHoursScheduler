@@ -81,6 +81,26 @@ const WeekSchedule = ({ weekData, weekIndex, onUpdate, onNameChange }) => {
         });
     }, [weekData, weekIndex, onUpdate]);
 
+    const handleRateChange = useCallback((type, action, value) => {
+        if (action === 'update') {
+            onUpdate(weekIndex, {
+                ...weekData,
+                labels: value
+            });
+        } else {
+            onUpdate(weekIndex, {
+                ...weekData,
+                rates: {
+                    ...weekData.rates,
+                    [type]: {
+                        ...weekData.rates[type],
+                        [action]: value
+                    }
+                }
+            });
+        }
+    }, [weekData, weekIndex, onUpdate]);
+
     const renderScheduleCell = (person, day, shift) => {
         return (
             <td key={day} className="border p-2">
@@ -247,18 +267,7 @@ const WeekSchedule = ({ weekData, weekIndex, onUpdate, onNameChange }) => {
                 
                 <PaymentCalculation
                     weekData={weekData}
-                    onRateChange={(person, rateType, value) => {
-                        onUpdate(weekIndex, {
-                            ...weekData,
-                            rates: {
-                                ...weekData.rates,
-                                [person]: {
-                                    ...weekData.rates[person],
-                                    [rateType]: value
-                                }
-                            }
-                        });
-                    }}
+                    onRateChange={handleRateChange}
                     onBonusChange={(person, newBonus) => {
                         onUpdate(weekIndex, {
                             ...weekData,
